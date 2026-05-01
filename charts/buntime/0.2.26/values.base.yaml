@@ -1,0 +1,122 @@
+# Buntime Helm Chart - Base Values (Runtime Only)
+# Plugin values are generated from manifest.yaml files
+# To regenerate: bun scripts/generate-helm.ts
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/zommehq/buntime
+  tag: latest
+  pullPolicy: Always
+
+# Test: GitLab local registry
+# image:
+#   repository: registry.gitlab.home/zomme/buntime
+#   tag: latest
+#   pullPolicy: Always
+# imagePullSecrets:
+#   - name: gitlab-registry
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: NodePort
+  port: 8000
+
+# Ingress (Kubernetes)
+# Ingress is enabled when host is not empty
+ingress:
+  host: ""  # Hostname only, no protocol/path (e.g., buntime.example.com or *.example.com)
+  className: "traefik"  # nginx, traefik, alb, etc
+  path: "/"
+  maxBodySize: "100m"  # Nginx max request body size (e.g., "100m", "0" for unlimited)
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: ""  # auto-generated if empty
+
+# Route (OpenShift/OKD)
+route:
+  enabled: false
+  host: ""
+  tls:
+    enabled: true
+    termination: edge  # edge, passthrough, reencrypt
+
+# Buntime runtime configuration
+buntime:
+  # API prefix (e.g., "/_" mounts API at "/_/api")
+  apiPrefix: "/_"
+
+  # Logging level (debug, info, warn, error)
+  logLevel: "info"
+
+  # High-privilege deploy key for CLI/TUI automation.
+  # Stored in a Kubernetes Secret when set.
+  masterKey: ""
+
+  # Max concurrent TTL=0 worker requests
+  ephemeralConcurrency: 2
+
+  # Max queued TTL=0 requests before returning 503
+  ephemeralQueueLimit: 100
+
+  # Plugin directories (colon-separated, PATH style)
+  pluginDirs: "/data/.plugins:/data/plugins"
+
+  # Worker pool size
+  poolSize: 100
+
+  # Worker config cache TTL in milliseconds (0 disables)
+  workerConfigCacheTtlMs: 1000
+
+  # Worker directory resolver cache TTL in milliseconds (0 disables)
+  workerResolverCacheTtlMs: 1000
+
+  # HTTP port
+  port: 8000
+
+  # Worker directories (colon-separated, PATH style)
+  workerDirs: "/data/.apps:/data/apps"
+
+# Container resources
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# PodDisruptionBudget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Persistent storage (always enabled)
+persistence:
+  # Custom plugins (core plugins are in /data/.plugins from image)
+  plugins:
+    size: 5Gi
+    accessMode: ReadWriteMany
+    storageClass: ""  # Use default if empty
+  # User applications
+  apps:
+    size: 10Gi
+    accessMode: ReadWriteMany
+    storageClass: ""  # Use default if empty
+
+# Plugin configurations - GENERATED SECTION
+# Do not edit below this line - values are generated from plugin manifests
+# plugins: {}
